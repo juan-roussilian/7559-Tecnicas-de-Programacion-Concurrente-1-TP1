@@ -1,35 +1,32 @@
-{
-    "pedidos": 
-    [
-        {
-            "cafe": 0,
-            "agua": 50,
-            "cacao": 0,
-            "espuma": 0
-        },
-        {
-            "cafe": 10,
-            "agua": 40,
-            "cacao": 0,
-            "espuma": 0
-        },
-        {
-            "cafe": 20,
-            "agua": 15,
-            "cacao": 15,
-            "espuma": 0
-        },
-        {
-            "cafe": 30,
-            "agua": 20,
-            "cacao": 5,
-            "espuma": 5
-        },
-        {   
-            "cafe": 60,
-            "agua": 80,
-            "cacao": 20,
-            "espuma": 10
-        }
-    ]
-}
+[
+    {
+        "cafe": 0,
+        "agua": 50,
+        "cacao": 0,
+        "espuma": 0
+    },
+    {
+        "cafe": 10,
+        "agua": 40,
+        "cacao": 0,
+        "espuma": 0
+    },
+    {
+        "cafe": 20,
+        "agua": 15,
+        "cacao": 15,
+        "espuma": 0
+    },
+    {
+        "cafe": 30,
+        "agua": 20,
+        "cacao": 5,
+        "espuma": 5
+    },
+    {
+        "cafe": 60,
+        "agua": 80,
+        "cacao": 20,
+        "espuma": 10
+    }
+]
