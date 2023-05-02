@@ -64,8 +64,8 @@ mod tests {
     fn contenedor_con_cantidad_500_obtener_contenido_10_devuelve_10() {
         let mut contenedor_recarga =
             ContenedorRecarga::new(500, 500).expect("Fallo la creacion del contenedor de recarga");
-        let mut contenedor =
-            Contenedor::new(500, 500, contenedor_recarga).expect("Fallo la creacion del contenedor");
+        let mut contenedor = Contenedor::new(500, 500, contenedor_recarga)
+            .expect("Fallo la creacion del contenedor");
         assert_eq!(contenedor.obtener_contenido(10), Some(10))
     }
     #[test]
@@ -90,8 +90,8 @@ mod tests {
     ) {
         let mut contenedor_recarga =
             ContenedorRecarga::new(500, 500).expect("Fallo la creacion del contenedor de recarga");
-        let mut contenedor = Contenedor::new(0, 500, contenedor_recarga)
-            .expect("Fallo la creacion del contenedor");
+        let mut contenedor =
+            Contenedor::new(0, 500, contenedor_recarga).expect("Fallo la creacion del contenedor");
         contenedor.recargar();
         assert_eq!(contenedor.obtener_contenido(500), Some(500))
     }
@@ -100,8 +100,8 @@ mod tests {
     fn contenedor_pide_recarga_total_y_contenedor_recarga_da_lo_que_tiene_y_queda_vacio() {
         let mut contenedor_recarga =
             ContenedorRecarga::new(10, 500).expect("Fallo la creacion del contenedor de recarga");
-        let mut contenedor = Contenedor::new(0, 500, contenedor_recarga)
-            .expect("Fallo la creacion del contenedor");
+        let mut contenedor =
+            Contenedor::new(0, 500, contenedor_recarga).expect("Fallo la creacion del contenedor");
         contenedor.recargar();
         assert_eq!(contenedor.obtener_contenido(10), Some(10));
         assert_eq!(contenedor.obtener_contenido(1), None);
