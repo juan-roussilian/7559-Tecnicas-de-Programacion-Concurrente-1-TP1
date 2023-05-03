@@ -39,6 +39,13 @@ impl Contenedor {
             None
         }
     }
+    pub fn nivel_contenedor_recarga(&self) -> u32{
+        if let Some(ref contenedor) = self.contenedor_recarga {
+            contenedor.nivel()
+        } else {
+            0
+        }
+    }
 }
 impl ContenedorCafetera for Contenedor {
     fn obtener_contenido(&mut self, cantidad_obtener: u32) -> Option<u32> {
@@ -50,6 +57,9 @@ impl ContenedorCafetera for Contenedor {
         } else {
             None
         }
+    }
+    fn nivel(&self) -> u32 {
+        ((self.cantidad as f32 /self.capacidad as f32) * 100.0) as u32
     }
 }
 
@@ -107,5 +117,24 @@ mod tests {
         assert_eq!(contenedor.obtener_contenido(1), None);
         contenedor.recargar();
         assert_eq!(contenedor.obtener_contenido(1), None)
+    }
+
+    #[test]
+    fn contenedor_cantidad_250_capacidad_500_nivel_devuelve_50() {
+        let mut contenedor = Contenedor::new(250, 500, None)
+            .expect("Fallo la creacion del contenedor");
+
+        assert_eq!(contenedor.nivel(), 50)
+    }
+
+    #[test]
+    fn contenedor_con_contenedor_recarga_con_cantidad_100_y_capacidad_500_nivel_contenedor_recarga_devuelve_20() {
+        let mut contenedor_recarga =
+            ContenedorRecarga::new(100, 500).expect("Fallo la creacion del contenedor de recarga");
+
+        let mut contenedor = Contenedor::new(250, 500, Some(contenedor_recarga))
+            .expect("Fallo la creacion del contenedor");
+
+        assert_eq!(contenedor.nivel_contenedor_recarga(), 20);
     }
 }

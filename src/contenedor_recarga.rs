@@ -38,6 +38,9 @@ impl ContenedorCafetera for ContenedorRecarga {
             None
         }
     }
+    fn nivel(&self) -> u32 {
+        ((self.cantidad as f32 /self.capacidad as f32) * 100.0) as u32
+    }
 }
 
 #[cfg(test)]
@@ -82,5 +85,13 @@ mod tests {
         let mut contenedor =
             ContenedorRecarga::new(0, 300).expect("Fallo la creacion del contenedor recarga");
         assert_eq!(contenedor.obtener_max_contenido(), 0)
+    }
+
+    #[test]
+    fn contenedor_recarga_cantidad_400_capacidad_3000_nivel_devuelve_13() {
+        let mut contenedor = ContenedorRecarga::new(400, 3000)
+            .expect("Fallo la creacion del contenedor");
+
+        assert_eq!(contenedor.nivel(), 13)
     }
 }
