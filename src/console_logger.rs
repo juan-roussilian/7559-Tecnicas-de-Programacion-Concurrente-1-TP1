@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
-
+/// Struct de loggeo de estadisticas por consola mediante uso de RwLockss
 pub struct ConsoleLogger {
     contenedor_cafe: Arc<RwLock<Contenedor>>,
     contenedor_espuma: Arc<RwLock<Contenedor>>,
@@ -16,6 +16,7 @@ pub struct ConsoleLogger {
 }
 
 impl ConsoleLogger {
+    /// Metodo constructor. Devuelve el Logger
     pub fn new(
         contenedor_cafe: Arc<RwLock<Contenedor>>,
         contenedor_agua: Arc<RwLock<Contenedor>>,
@@ -33,6 +34,14 @@ impl ConsoleLogger {
             contador_pedidos,
         }
     }
+    /// Escribe por consola cada cierto tiempo configurable estadisticas
+    ///
+    /// Estas son:
+    /// -  El nivel de cada contenedor, exceptuando el contenedor que representa la red de agua,
+    /// - los consumos de ingredientes de todos los contenedores
+    /// - La cantidad de bebidas preparadas
+    ///
+    /// Toma los locks solo para lectura. Se ejecuta hasta el que usuario detenga el programa. No retorna nada
     pub fn loggear_estadisticas(&self) {
         let mut nivel_granos: u32 = 0;
         let mut nivel_cafe: u32 = 0;

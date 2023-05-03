@@ -1,10 +1,18 @@
+/// Realiza el loggeo por consola de estadisticas
 mod console_logger;
+/// Contiene la configuracion de constantes de la aplicacion
 mod constants;
+/// Representa contenedores de ingredientes que son consumidos directamente por dispensadores
 mod contenedor;
+/// Representa contenedores de ingredientes que consumidos unicamente por otros contenedores simples
 mod contenedor_recarga;
+/// Representa los dispensadores de bebidas, que toman pedidos y consumen ingredientes de los contenedores
 mod dispensador;
+/// Representa pedidos en la aplicacion
 mod pedido;
+/// Leer un archivo de pedidos (unicamente json) y generar los objetos pedido
 mod pedidos_parser;
+/// Interfaz que representa lo que debe hacer un contenedor
 mod trait_contenedor_cafetera;
 
 use crate::console_logger::ConsoleLogger;
@@ -18,6 +26,7 @@ use std::sync::{Arc, RwLock};
 use std::thread::JoinHandle;
 use std::{fs, thread};
 
+/// Funcion principal que realiza la logica de crear todos los hilos y esperar su resultado.
 fn main() {
     let mut pedidos_string = "".to_string();
     if let Ok(string) = fs::read_to_string(PATH_ARCHIVO_JSON_PEDIDOS) {
@@ -108,7 +117,9 @@ fn main() {
 
     hilos.into_iter().flat_map(|x| x.join()).for_each(drop);
 }
-
+/// Funcion auxiliar que se utiliza para crear un contenedor dentro `Arc<RwLock>`, donde contenedor se inicializa
+/// con capacidad_contenedor y cantidad de ingredientes al maximo, y con su contenedor de recarga tambien
+/// con capacidad capacidad_contenedor_rec si es mayor a cero, y sin contenedor de recarga si vale 0.
 pub fn crear_arc_lock_contenedor(
     capacidad_contenedor: u32,
     capacidad_contenedor_rec: u32,

@@ -1,14 +1,20 @@
+use crate::constants::TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE;
 use crate::trait_contenedor_cafetera::ContenedorCafetera;
 use std::thread;
 use std::time::Duration;
-use crate::constants::TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE;
 
+///Struct que representa un contenedor de recarga. Solo tiene cantidad y capacidad. Deberia utilizarse
+/// unicamente en conjunto con un contenedor simple.
 pub struct ContenedorRecarga {
     cantidad: u32,
     capacidad: u32,
 }
 
 impl ContenedorRecarga {
+    /// Metodo constructor.
+    ///
+    /// Se debe cumplir `cantidad <= capacidad`. De no cumplirse esto, retornara un
+    /// `Err<String>`, caso contrario, retorna `Ok<Contenedor>`.
     pub fn new(cantidad: u32, capacidad: u32) -> Result<Self, String> {
         if cantidad <= capacidad {
             Ok(ContenedorRecarga {
@@ -19,9 +25,14 @@ impl ContenedorRecarga {
             Err("La cantidad con la que se inicializa el contenedor de recarga no puede ser mayor a la capacidad".into())
         }
     }
+    /// Devuelve todo el contenido que tiene
+    ///
+    /// Pone su contenido en 0 y lo devuelve como u32, previamente realizando la espera que representa la obtencion del recurso
     pub fn obtener_max_contenido(&mut self) -> u32 {
         let max_cantidad = self.cantidad;
-        thread::sleep(Duration::from_millis((max_cantidad * TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE) as u64));
+        thread::sleep(Duration::from_millis(
+            (max_cantidad * TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE) as u64,
+        ));
         self.cantidad = 0;
         max_cantidad
     }
@@ -30,7 +41,9 @@ impl ContenedorCafetera for ContenedorRecarga {
     fn obtener_contenido(&mut self, cantidad_obtener: u32) -> Option<u32> {
         //un milisegundo equivale a 1gr o 1ml
         if cantidad_obtener <= self.cantidad {
-            thread::sleep(Duration::from_millis((cantidad_obtener * TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE) as u64));
+            thread::sleep(Duration::from_millis(
+                (cantidad_obtener * TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE) as u64,
+            ));
             self.cantidad -= cantidad_obtener;
             Some(cantidad_obtener)
         } else {
@@ -88,7 +101,7 @@ mod tests {
 
     #[test]
     fn contenedor_recarga_cantidad_400_capacidad_3000_nivel_devuelve_13() {
-        let mut contenedor =
+        let contenedor =
             ContenedorRecarga::new(400, 3000).expect("Fallo la creacion del contenedor");
 
         assert_eq!(contenedor.nivel(), 13)

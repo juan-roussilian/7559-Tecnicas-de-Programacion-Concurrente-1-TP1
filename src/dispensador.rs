@@ -5,6 +5,8 @@ use crate::trait_contenedor_cafetera::ContenedorCafetera;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
+/// Struct de Dispensador que se utiliza para preparar bebidas recibiendo pedidos y guardando estadisticas
+/// de los mismos
 pub struct Dispensador {
     id: u32,
     contenedor_cafe: Arc<RwLock<Contenedor>>,
@@ -14,6 +16,7 @@ pub struct Dispensador {
 }
 
 impl Dispensador {
+    /// Constructor. Recibe las referencias a los locks de contenedores y devuelve un struct `Dispensador`
     pub fn new(
         id: u32,
         contenedor_cafe: Arc<RwLock<Contenedor>>,
@@ -29,6 +32,10 @@ impl Dispensador {
             contenedor_cacao,
         }
     }
+    /// Produce bebidas de manera thread safe para ser utilizado en varios hilos.
+    ///
+    /// Produce hasta que no haya mas bebdias tomando un pedido y sirve todos los ingredientes que requiere el mismo, esperando el tiempo necesario
+    /// para la obtencion de cada pedido. No tiene valor de retorno.
     pub fn producir_bebidas(
         &mut self,
         pedidos: Arc<RwLock<Vec<Pedido>>>,
@@ -93,6 +100,13 @@ impl Dispensador {
             }
         }
     }
+    /// Recibe las referencias a los locks de un contenedor en particular, las estadisticas de los consumos
+    /// en forma de diccionario y las claves para las estadisticas del contendor.
+    ///
+    /// Si el contenedor no tiene otro contenedor para recargarse, no se utilizara `clave_contenedor_rec`y puede
+    /// tomar cualquier valor
+    /// Retornara True si pudo servir el ingrediente, descontando la cantidad de contenedor, o False en caso contrario
+    /// por insuficiencia de dicho ingrediente.
     fn servir_ingrediente(
         arc_contenedor: Arc<RwLock<Contenedor>>,
         cantidad: u32,
@@ -107,23 +121,22 @@ impl Dispensador {
                     *consumos.entry(clave_contenedor).or_insert(0) += consumido;
                 }
             } else if let Some(consumo_recarga) = contenedor.recargar() {
+                if let Ok(mut consumos) = arc_consumos.write() {
+                    *consumos.entry(clave_contenedor_rec.clone()).or_insert(0) += consumo_recarga;
+                    if contenedor.nivel_contenedor_recarga() < PORCENTAJE_AVISO_BAJA_CANTIDAD {
+                        println!(
+                            "Atencion! contenedor {} esta con un nivel de menos de {}%",
+                            clave_contenedor_rec, PORCENTAJE_AVISO_BAJA_CANTIDAD
+                        );
+                    }
+                }
+                if let Some(consumido_post_carga) = contenedor.obtener_contenido(cantidad) {
                     if let Ok(mut consumos) = arc_consumos.write() {
-                        *consumos.entry(clave_contenedor_rec.clone()).or_insert(0) +=
-                            consumo_recarga;
-                        if contenedor.nivel_contenedor_recarga() < PORCENTAJE_AVISO_BAJA_CANTIDAD {
-                            println!(
-                                "Atencion! contenedor {} esta con un nivel de menos de {}%",
-                                clave_contenedor_rec, PORCENTAJE_AVISO_BAJA_CANTIDAD
-                            );
-                        }
+                        *consumos.entry(clave_contenedor).or_insert(0) += consumido_post_carga;
                     }
-                    if let Some(consumido_post_carga) = contenedor.obtener_contenido(cantidad) {
-                        if let Ok(mut consumos) = arc_consumos.write() {
-                            *consumos.entry(clave_contenedor).or_insert(0) += consumido_post_carga;
-                        }
-                    } else {
-                        exito = false;
-                    }
+                } else {
+                    exito = false;
+                }
             } else {
                 exito = false;
             }
