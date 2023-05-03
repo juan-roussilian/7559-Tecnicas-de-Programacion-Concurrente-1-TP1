@@ -5,6 +5,7 @@ mod pedido;
 mod pedidos_parser;
 mod trait_contenedor_cafetera;
 mod dispensador;
+mod console_logger;
 
 use crate::constants::*;
 use crate::contenedor::Contenedor;
@@ -14,11 +15,21 @@ use std::sync::{Arc, RwLock};
 use std::{fs, thread};
 use std::collections::HashMap;
 use std::thread::JoinHandle;
+use crate::console_logger::ConsoleLogger;
 use crate::dispensador::Dispensador;
 
 fn main() {
-    let path = "pedidos_ejemplo.json";
-    let data = fs::read_to_string(path).expect("Unable to read file");
+    let mut pedidos_string = "".to_string();
+    if let Ok(string) = fs::read_to_string(PATH_ARCHIVO_JSON_PEDIDOS){
+        pedidos_string = string;
+    }else{
+        println!("Error al intentar leer el archivo de pedidos. Revisar path en constants.rs");
+    }
+
+    let mut pedidos = Arc::new(RwLock::new(vec![]));
+    if let Ok(lista_pedidos) = PedidosParser::new(&pedidos_string).obtener_pedidos() {
+        pedidos = Arc::new(RwLock::new(lista_pedidos));
+    };
     let mut consumos:HashMap<String,u32> = HashMap::new();
     consumos.insert("granos".to_string(), 0);
     consumos.insert("cafe".to_string(),0);
@@ -30,12 +41,7 @@ fn main() {
     let consumos_arc = Arc::new(RwLock::new(consumos));
     let contador_pedidos_preparados = Arc::new(RwLock::new(0));
 
-    let mut pedidos = Arc::new(RwLock::new(vec![]));
 
-    if let Ok(lista_pedidos) = PedidosParser::new(&data).obtener_pedidos() {
-        println!("pedidos:{:?}",lista_pedidos);
-        pedidos = Arc::new(RwLock::new(lista_pedidos));
-    };
 
     let contenedor_cafe =
         match crear_arc_lock_contenedor(CAPACIDAD_CAFE_MOLIDO, CAPACIDAD_CAFE_GRANO) {
@@ -69,21 +75,34 @@ fn main() {
         }
     };
 
+    let mut hilos: Vec<JoinHandle<()>> = vec![];
 
-    let dispensadores: Vec<JoinHandle<()>> = (0..CANTIDAD_DISPENSADORES)
+    let logger = ConsoleLogger::new(
+        contenedor_cafe.clone(),
+        contenedor_agua.clone(),
+        contenedor_espuma.clone(),
+        contenedor_cacao.clone(),
+        consumos_arc.clone(),
+        contador_pedidos_preparados.clone()
+    );
+
+    hilos.push(thread::spawn(move || logger.loggear_estadisticas()));
+
+    let mut dispensadores: Vec<JoinHandle<()>> = (0..CANTIDAD_DISPENSADORES)
         .map(|id| {
             let mut dispensador = Dispensador::new(id as u32,contenedor_cafe.clone(),contenedor_agua.clone(),contenedor_espuma.clone(),contenedor_cacao.clone());
             let lista_pedidos = pedidos.clone();
-            println!("pedidos dispensador: {:?}",lista_pedidos.read().unwrap());
             let consumos = consumos_arc.clone();
             let contador_pedidos = contador_pedidos_preparados.clone();
-            thread::spawn(move || dispensador.generar_pedidos(lista_pedidos, consumos, contador_pedidos))
+
+            thread::spawn(move || dispensador.producir_bebidas(lista_pedidos, consumos, contador_pedidos))
         })
         .collect();
+    hilos.append(&mut dispensadores);
 
-    dispensadores.into_iter()
+    hilos.into_iter()
         .flat_map(|x| x.join())
-        .for_each(drop)
+        .for_each(drop);
 }
 
 pub fn crear_arc_lock_contenedor(

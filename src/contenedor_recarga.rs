@@ -19,8 +19,6 @@ impl ContenedorRecarga {
         }
     }
     pub fn obtener_max_contenido(&mut self) -> u32 {
-        // TODO: Ademas debe ser llamado por el hilo "recargador" que estara verificando una condvar
-        // de la cantidad que hay en el contenedor.
         let max_cantidad = self.cantidad;
         thread::sleep(Duration::from_millis(max_cantidad as u64));
         self.cantidad = 0;
