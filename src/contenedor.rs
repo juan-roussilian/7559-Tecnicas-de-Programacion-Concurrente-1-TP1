@@ -2,6 +2,7 @@ use crate::contenedor_recarga::ContenedorRecarga;
 use crate::trait_contenedor_cafetera::ContenedorCafetera;
 use std::thread;
 use std::time::Duration;
+use crate::constants::TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE;
 
 pub struct Contenedor {
     cantidad: u32,
@@ -51,7 +52,7 @@ impl ContenedorCafetera for Contenedor {
     fn obtener_contenido(&mut self, cantidad_obtener: u32) -> Option<u32> {
         //un milisegundo equivale a 1gr o 1ml
         if cantidad_obtener <= self.cantidad {
-            thread::sleep(Duration::from_millis(cantidad_obtener as u64));
+            thread::sleep(Duration::from_millis((cantidad_obtener * TIEMPO_EN_OBTENER_UNIDAD_DE_INGREDIENTE)as u64));
             self.cantidad -= cantidad_obtener;
             Some(cantidad_obtener)
         } else {
