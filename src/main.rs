@@ -4,6 +4,7 @@ mod contenedor_recarga;
 mod pedido;
 mod pedidos_parser;
 mod trait_contenedor_cafetera;
+mod dispensador;
 
 use crate::constants::*;
 use crate::contenedor::Contenedor;
@@ -11,22 +12,28 @@ use crate::contenedor_recarga::ContenedorRecarga;
 use crate::pedidos_parser::PedidosParser;
 use std::sync::{Arc, RwLock};
 use std::{fs, thread};
+use std::collections::HashMap;
+use std::thread::JoinHandle;
+use crate::dispensador::Dispensador;
 
 fn main() {
     let path = "pedidos_ejemplo.json";
     let data = fs::read_to_string(path).expect("Unable to read file");
-    let _pedidos_preparados = Arc::new(RwLock::new(0));
-    let _grano_cafe_consumido = Arc::new(RwLock::new(0));
-    let _leche_fria_consumida = Arc::new(RwLock::new(0));
-    let _agua_de_red_consumida = Arc::new(RwLock::new(0));
-    let _cafe_molido_consumido = Arc::new(RwLock::new(0));
-    let _espuma_leche_consumido = Arc::new(RwLock::new(0));
-    let _agua_caliente_consumida = Arc::new(RwLock::new(0));
-    let _cacao_consumido = Arc::new(RwLock::new(0));
+    let mut consumos:HashMap<String,u32> = HashMap::new();
+    consumos.insert("granos".to_string(), 0);
+    consumos.insert("cafe".to_string(),0);
+    consumos.insert("leche".to_string(),0);
+    consumos.insert("espuma".to_string(),0);
+    consumos.insert("agua".to_string(),0);
+    consumos.insert("red".to_string(),0);
+    consumos.insert("cacao".to_string(),0);
+    let consumos_arc = Arc::new(RwLock::new(consumos));
+    let contador_pedidos_preparados = Arc::new(RwLock::new(0));
 
-    let pedidos;
+    let mut pedidos = Arc::new(RwLock::new(vec![]));
 
-    if let Ok(mut lista_pedidos) = PedidosParser::new(&data).obtener_pedidos() {
+    if let Ok(lista_pedidos) = PedidosParser::new(&data).obtener_pedidos() {
+        println!("pedidos:{:?}",lista_pedidos);
         pedidos = Arc::new(RwLock::new(lista_pedidos));
     };
 
@@ -62,16 +69,21 @@ fn main() {
         }
     };
 
-    let mut dispensers = vec![];
 
-    for _ in 0..CANTIDAD_DISPENSADORES {
-        let lock_contenedor_cafe = contenedor_cafe.clone();
-        let lock_contenedor_agua = contenedor_agua.clone();
-        let lock_contenedor_espuma = contenedor_espuma.clone();
-        let lock_contenedor_cacao = contenedor_cacao.clone();
+    let dispensadores: Vec<JoinHandle<()>> = (0..CANTIDAD_DISPENSADORES)
+        .map(|id| {
+            let mut dispensador = Dispensador::new(id as u32,contenedor_cafe.clone(),contenedor_agua.clone(),contenedor_espuma.clone(),contenedor_cacao.clone());
+            let lista_pedidos = pedidos.clone();
+            println!("pedidos dispensador: {:?}",lista_pedidos.read().unwrap());
+            let consumos = consumos_arc.clone();
+            let contador_pedidos = contador_pedidos_preparados.clone();
+            thread::spawn(move || dispensador.generar_pedidos(lista_pedidos, consumos, contador_pedidos))
+        })
+        .collect();
 
-        dispensers.push(thread::spawn(move || println!("A implementar"))/*dispensador_preparar(contenedores,metricas)*/)
-    }
+    dispensadores.into_iter()
+        .flat_map(|x| x.join())
+        .for_each(drop)
 }
 
 pub fn crear_arc_lock_contenedor(
