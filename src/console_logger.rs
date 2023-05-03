@@ -1,37 +1,36 @@
+use crate::constants::*;
+use crate::contenedor::Contenedor;
+use crate::trait_contenedor_cafetera::ContenedorCafetera;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
-use crate::constants::*;
-use crate::contenedor::Contenedor;
-use crate::pedido::Pedido;
-use crate::trait_contenedor_cafetera::ContenedorCafetera;
 
-pub struct ConsoleLogger{
-    contenedor_cafe:Arc<RwLock<Contenedor>>,
-    contenedor_espuma:Arc<RwLock<Contenedor>>,
-    contenedor_agua:Arc<RwLock<Contenedor>>,
-    contenedor_cacao:Arc<RwLock<Contenedor>>,
-    consumos:Arc<RwLock<HashMap<String,u32>>>,
-    contador_pedidos:Arc<RwLock<u32>>,
+pub struct ConsoleLogger {
+    contenedor_cafe: Arc<RwLock<Contenedor>>,
+    contenedor_espuma: Arc<RwLock<Contenedor>>,
+    contenedor_agua: Arc<RwLock<Contenedor>>,
+    contenedor_cacao: Arc<RwLock<Contenedor>>,
+    consumos: Arc<RwLock<HashMap<String, u32>>>,
+    contador_pedidos: Arc<RwLock<u32>>,
 }
 
 impl ConsoleLogger {
     pub fn new(
-        contenedor_cafe:Arc<RwLock<Contenedor>>,
-        contenedor_agua:Arc<RwLock<Contenedor>>,
-        contenedor_espuma:Arc<RwLock<Contenedor>>,
-        contenedor_cacao:Arc<RwLock<Contenedor>>,
-        consumos:Arc<RwLock<HashMap<String,u32>>>,
-        contador_pedidos:Arc<RwLock<u32>>
-    )-> Self{
-        ConsoleLogger{
+        contenedor_cafe: Arc<RwLock<Contenedor>>,
+        contenedor_agua: Arc<RwLock<Contenedor>>,
+        contenedor_espuma: Arc<RwLock<Contenedor>>,
+        contenedor_cacao: Arc<RwLock<Contenedor>>,
+        consumos: Arc<RwLock<HashMap<String, u32>>>,
+        contador_pedidos: Arc<RwLock<u32>>,
+    ) -> Self {
+        ConsoleLogger {
             contenedor_cafe,
             contenedor_espuma,
             contenedor_agua,
             contenedor_cacao,
             consumos,
-            contador_pedidos
+            contador_pedidos,
         }
     }
     pub fn loggear_estadisticas(&self) {
@@ -50,8 +49,7 @@ impl ConsoleLogger {
         let mut consumo_cacao: u32 = 0;
         let mut bebidas_preparadas: u32 = 0;
         loop {
-
-            thread::sleep(Duration::from_millis(MILISEGUNDOS_ENTRE_ESTADISTICAS as u64));
+            thread::sleep(Duration::from_millis(MILISEGUNDOS_ENTRE_ESTADISTICAS));
             if let Ok(pedidos_guard) = self.contador_pedidos.read() {
                 bebidas_preparadas = *pedidos_guard;
             }
@@ -72,26 +70,26 @@ impl ConsoleLogger {
             if let Ok(cacao_guard) = self.contenedor_cacao.read() {
                 nivel_cacao = cacao_guard.nivel();
             }
-            if let Ok(consumos_guard) = self.consumos.read(){
-                if let Some(consumo) = consumos_guard.get("granos"){
+            if let Ok(consumos_guard) = self.consumos.read() {
+                if let Some(consumo) = consumos_guard.get("granos") {
                     consumo_granos = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("cafe"){
+                if let Some(consumo) = consumos_guard.get("cafe") {
                     consumo_cafe = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("red"){
+                if let Some(consumo) = consumos_guard.get("red") {
                     consumo_red = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("agua"){
+                if let Some(consumo) = consumos_guard.get("agua") {
                     consumo_agua = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("leche"){
+                if let Some(consumo) = consumos_guard.get("leche") {
                     consumo_leche = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("espuma"){
+                if let Some(consumo) = consumos_guard.get("espuma") {
                     consumo_espuma = *consumo;
                 }
-                if let Some(consumo) = consumos_guard.get("cacao"){
+                if let Some(consumo) = consumos_guard.get("cacao") {
                     consumo_cacao = *consumo;
                 }
             }
